@@ -1,98 +1,118 @@
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-    background-color: red;
+    background-color: #f0f0f0;
     overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .gameContainer {
     background-image: url(./images/bg.png);
     background-repeat: no-repeat;
-    background-size: 100vw 100vh;
-    width: 100%;
+    background-size: cover;
+    background-position: center;
+    width: 100vw;
     height: 100vh;
+    position: relative;
 }
 
 .dino {
     background-image: url(./images/dino.png);
     background-repeat: no-repeat;
-    background-size: cover;
-    width: 233px;
-    height: 114px;
+    background-size: contain;
+    width: 15vw;  /* Responsive width */
+    height: 15vh; /* Responsive height */
     position: absolute;
-    bottom: 0;
-    left: 52px;
+    bottom: 5vh;
+    left: 5vw;
 }
 
 .obstacle {
-    width: 166px;
-    height: 113px;
+    width: 10vw;
+    height: 12vh;
     background-image: url(./images/dragon.png);
-    background-size: cover;
+    background-repeat: no-repeat;
+    background-size: contain;
     position: absolute;
-    bottom: 0;
-    left: 44vw;
-
+    bottom: 5vh;
+    left: 100vw; /* Start off-screen */
 }
 
 .animateDino {
-    animation: dino 0.6s linear;
+    animation: dinoJump 0.8s linear;
 }
 
 .obstacleAni {
-    animation: obstacleAni 5s linear infinite;
+    animation: obstacleMove 5s linear infinite;
 }
 
 .gameOver {
-    position: relative;
-    top: 63px;
-    font-size: 53px;
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 3rem;
     text-align: center;
-    font-family: sans-serif;
+    color: #333;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.7);
+    width: 100%;
+    pointer-events: none; /* Let clicks pass through if needed */
 }
 
 #scoreCont {
-    font-size: 25px;
+    font-size: 1.5rem;
     color: #54212f;
     font-weight: bold;
     position: absolute;
-    right: 45px;
-    top: 30px;
-    border: 2px solid black;
-    font-family: sans-serif;
-    border-radius: 4px;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    -ms-border-radius: 4px;
-    -o-border-radius: 4px;
+    right: 2rem;
+    top: 2rem;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px 20px;
+    border: 2px solid #54212f;
+    border-radius: 8px;
 }
 
-@keyframes dino {
+#restartBtn {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 15px 30px;
+    font-size: 1.5rem;
+    background-color: #ff5722;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+#restartBtn:hover {
+    background-color: #e64a19;
+}
+
+@keyframes dinoJump {
     0% {
-        bottom: 0;
-
+        bottom: 5vh;
     }
-
     50% {
-        bottom: 422px;
-
+        bottom: 40vh; /* Jump height */
     }
-
     100% {
-        bottom: 0;
-
+        bottom: 5vh;
     }
 }
 
-@keyframes obstacleAni {
+@keyframes obstacleMove {
     0% {
         left: 100vw;
     }
-
     100% {
-        left: -10vw;
+        left: -15vw;
     }
 }
