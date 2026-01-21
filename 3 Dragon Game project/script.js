@@ -31,8 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.onkeydown = function (e) {
         if (!isGameRunning) return;
 
-        console.log("Key code is: ", e.code);
-
         // Jump
         if (e.code === 'ArrowUp') {
             if (!dino.classList.contains('animateDino')) {
@@ -104,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const aniDur = parseFloat(window.getComputedStyle(obstacle, null).getPropertyValue('animation-duration'));
                 const newDur = Math.max(aniDur - 0.1, minAnimationDuration); // Limit max speed
                 obstacle.style.animationDuration = newDur + 's';
-                console.log('New animation duration: ', newDur);
             }, 500);
         }
     }, 50); // Increased interval to 50ms for better performance, logic adjusted
