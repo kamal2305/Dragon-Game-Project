@@ -11,7 +11,7 @@ body {
 }
 
 .gameContainer {
-    background-image: url(./images/bg.png);
+    background-image: url(../assets/images/bg.png);
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -21,20 +21,20 @@ body {
 }
 
 .dino {
-    background-image: url(./images/dino.png);
+    background-image: url(../assets/images/dino.png);
     background-repeat: no-repeat;
     background-size: contain;
-    width: 15vw;  /* Responsive width */
-    height: 15vh; /* Responsive height */
+    width: clamp(72px, 15vw, 180px);
+    height: clamp(72px, 15vh, 180px);
     position: absolute;
     bottom: 5vh;
     left: 5vw;
 }
 
 .obstacle {
-    width: 10vw;
-    height: 12vh;
-    background-image: url(./images/dragon.png);
+    width: clamp(56px, 10vw, 128px);
+    height: clamp(56px, 12vh, 128px);
+    background-image: url(../assets/images/dragon.png);
     background-repeat: no-repeat;
     background-size: contain;
     position: absolute;
@@ -47,7 +47,7 @@ body {
 }
 
 .obstacleAni {
-    animation: obstacleMove 5s linear infinite;
+    animation: obstacleMove 7s linear infinite;
 }
 
 .gameOver {
@@ -64,16 +64,28 @@ body {
 }
 
 #scoreCont {
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 2.2vw, 1.5rem);
     color: #54212f;
     font-weight: bold;
     position: absolute;
-    right: 2rem;
-    top: 2rem;
+    right: 1rem;
+    top: 1rem;
     background: rgba(255, 255, 255, 0.8);
-    padding: 10px 20px;
+    padding: 8px 14px;
     border: 2px solid #54212f;
     border-radius: 8px;
+}
+
+@media (max-width: 700px) {
+    .gameOver {
+        font-size: 2rem;
+        top: 12%;
+    }
+
+    #restartBtn {
+        font-size: 1.1rem;
+        padding: 12px 22px;
+    }
 }
 
 #restartBtn {
@@ -110,9 +122,9 @@ body {
 
 @keyframes obstacleMove {
     0% {
-        left: 100vw;
+        left: 130vw;
     }
     100% {
-        left: -15vw;
+        left: -20vw;
     }
 }

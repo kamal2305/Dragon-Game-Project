@@ -1,15 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     let score = 0;
-    let cross = true;
     let isGameRunning = true;
-    let animationDuration = 5;
+    let canCollide = false;
+    let obstaclePassed = false;
+    let hasGameStarted = false;
     const minAnimationDuration = 2.5; // Minimum duration for obstacle animation
+    const gameStartGraceMs = 2500;
 
-    const audio = new Audio('music.mp3');
-    const audiogo = new Audio('gameover.mp3');
+    const audio = new Audio('assets/audio/music.mp3');
+    const audiogo = new Audio('assets/audio/gameover.mp3');
 
     // Attempt to play background music on user interaction if autoplay fails
     const startAudio = () => {
+        startGameIfNeeded();
         audio.play().catch(error => {
             console.log("Audio play failed (autoplay policy):", error);
         });
@@ -27,11 +30,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const obstacle = document.querySelector('.obstacle');
     const scoreCont = document.querySelector('#scoreCont');
     const restartBtn = document.querySelector('#restartBtn');
+    const gameContainer = document.querySelector('.gameContainer');
 
-    document.onkeydown = function (e) {
+    // Keep the obstacle paused until the player starts the game.
+    obstacle.style.animationPlayState = 'paused';
+
+    function startGameIfNeeded() {
+        if (hasGameStarted || !isGameRunning) {
+            return;
+        }
+
+        hasGameStarted = true;
+        obstacle.style.animationPlayState = 'running';
+
+        // Enable collision checks after a short reaction window.
+        setTimeout(() => {
+            canCollide = true;
+        }, gameStartGraceMs);
+    }
+
+    const onKeyDown = (e) => {
         if (!isGameRunning) return;
 
-        console.log("Key code is: ", e.code);
+        startGameIfNeeded();
 
         // Jump
         if (e.code === 'ArrowUp') {
@@ -45,67 +66,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Move Right
         if (e.code === 'ArrowRight') {
-            const dinoX = parseInt(window.getComputedStyle(dino, null).getPropertyValue('left'));
-            const containerWidth = document.querySelector('.gameContainer').offsetWidth;
-            if (dinoX < containerWidth - 200) { // Boundary check
-                dino.style.left = (dinoX + 112) + "px";
-            }
+            const dinoX = parseInt(window.getComputedStyle(dino, null).getPropertyValue('left'), 10);
+            const moveStep = Math.max(40, Math.round(gameContainer.offsetWidth * 0.08));
+            const maxLeft = gameContainer.offsetWidth - dino.offsetWidth;
+            dino.style.left = Math.min(dinoX + moveStep, maxLeft) + 'px';
         }
 
         // Move Left
         if (e.code === 'ArrowLeft') {
-            const dinoX = parseInt(window.getComputedStyle(dino, null).getPropertyValue('left'));
-            if (dinoX > 0) { // Boundary check
-                dino.style.left = (dinoX - 112) + "px";
-            }
+            const dinoX = parseInt(window.getComputedStyle(dino, null).getPropertyValue('left'), 10);
+            const moveStep = Math.max(40, Math.round(gameContainer.offsetWidth * 0.08));
+            dino.style.left = Math.max(dinoX - moveStep, 0) + 'px';
         }
     };
+
+    document.addEventListener('keydown', onKeyDown);
 
     const gameLoop = setInterval(() => {
         if (!isGameRunning) return;
 
-        const dx = parseInt(window.getComputedStyle(dino, null).getPropertyValue('left'));
-        const dy = parseInt(window.getComputedStyle(dino, null).getPropertyValue('top')); // Note: Top is calculated relative to container
-
-        const ox = parseInt(window.getComputedStyle(obstacle, null).getPropertyValue('left'));
-        const oy = parseInt(window.getComputedStyle(obstacle, null).getPropertyValue('top'));
-
-        const offsetX = Math.abs(dx - ox);
-        const offsetY = Math.abs(dy - oy);
-
-        // Improved collision detection
-        // Dino width ~ 15vw, Height ~ 15vh. Obstacle ~ 10vw.
-        // Need to be careful with pixel values as we used vw/vh in CSS.
-        // Let's use getBoundingClientRect for more accurate collision.
-
         const dinoRect = dino.getBoundingClientRect();
         const obstacleRect = obstacle.getBoundingClientRect();
+        const dinoCenterX = dinoRect.left + dinoRect.width / 2;
+        const obstacleCenterX = obstacleRect.left + obstacleRect.width / 2;
 
         // Simple AABB collision detection
-        if (
+        const hasCollision =
             dinoRect.left < obstacleRect.right &&
             dinoRect.right > obstacleRect.left &&
             dinoRect.top < obstacleRect.bottom &&
-            dinoRect.bottom > obstacleRect.top
-        ) {
+            dinoRect.bottom > obstacleRect.top;
+
+        if (canCollide && hasCollision) {
             // Collision detected
             endGame();
         }
-        else if (offsetX < 145 && cross) {
+        else if (!obstaclePassed && obstacleCenterX < dinoCenterX) {
             score += 1;
             updateScore(score);
-            cross = false;
-            setTimeout(() => {
-                cross = true;
-            }, 1000);
+            obstaclePassed = true;
 
             // Increase speed (decrease duration)
-            setTimeout(() => {
-                const aniDur = parseFloat(window.getComputedStyle(obstacle, null).getPropertyValue('animation-duration'));
-                const newDur = Math.max(aniDur - 0.1, minAnimationDuration); // Limit max speed
-                obstacle.style.animationDuration = newDur + 's';
-                console.log('New animation duration: ', newDur);
-            }, 500);
+            const aniDur = parseFloat(window.getComputedStyle(obstacle, null).getPropertyValue('animation-duration'));
+            const newDur = Math.max(aniDur - 0.1, minAnimationDuration); // Limit max speed
+            obstacle.style.animationDuration = newDur + 's';
+        }
+
+        // Rearm scoring when obstacle returns to the right side for the next cycle.
+        if (obstacleRect.left > dinoRect.right + 80) {
+            obstaclePassed = false;
         }
     }, 50); // Increased interval to 50ms for better performance, logic adjusted
 
@@ -121,11 +130,14 @@ document.addEventListener('DOMContentLoaded', () => {
         obstacle.style.left = window.getComputedStyle(obstacle).getPropertyValue('left');
         dino.style.animation = 'none';
 
-        audiogo.play();
+        audiogo.play().catch(() => {
+            // Ignore blocked audio errors caused by browser autoplay policies.
+        });
         audio.pause();
 
         isGameRunning = false;
         clearInterval(gameLoop);
+        document.removeEventListener('keydown', onKeyDown);
 
         restartBtn.style.display = 'block';
     }
